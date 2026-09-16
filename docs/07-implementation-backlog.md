@@ -1251,3 +1251,51 @@ one anywhere in the UI (they only ever existed via seed data).
   and backend, the actual commands a deployment runs — not just
   `tsc --noEmit`, per the process note two sections up) and both test
   suites pass (9 backend / 18 frontend).
+
+## Status: Self-service Projects (add/remove yourself) (2026-09-16)
+
+User-noticed gap: Admin Taxonomy could manage Project *entities* (rename/
+deactivate/merge/create), but nothing anywhere let a person actually be
+added to or removed from a project — the only people ever on one got there
+from the one-time seed script. Communities already had this (self-service
+join/leave); Projects never did.
+
+- **Root cause of the gap, and why the fix is exactly what it is**: looking
+  back at `docs/08-navigation-ia.md`'s original spec, **My Profile** was
+  always described as letting someone "view/edit ... skills, industries,
+  organizations, interests, **projects**, connections" — Projects was
+  always meant to sit in the same self-service bucket as Organizations.
+  Item 16 (building Projects) scoped it narrower at the time ("entity +
+  project-centered constellation view") and this part was simply never
+  circled back to.
+- **Backend**: `browseProjects()` gained an optional `query` parameter
+  (`GET /api/projects?q=`) for search-as-you-type, reusing the exact same
+  endpoint the `/projects` browse page already calls with no query (empty
+  string matches everything, so that page's behavior is unchanged). New
+  `POST /api/me/projects` / `DELETE /api/me/projects/:projectId` on the
+  existing `me.ts` router, mirroring the Organizations pattern with one
+  deliberate difference: `PersonProject` has a per-person-per-project
+  unique constraint (you're on a project or you're not, unlike
+  Organizations where multiple stints at the same org are allowed), so
+  this **upserts** rather than creates — re-adding a project you're already
+  on just updates your role instead of erroring.
+- **Frontend**: new `ProjectPicker` component — a plain search-and-pick
+  combobox with no "propose new" affordance (mirroring `PersonPicker`'s
+  reasoning, not `TaxonomyPicker`'s: only an Admin can create a new project
+  at all, so there's nothing here to propose). New `ProjectsStep` added as
+  a 6th step in the onboarding wizard (`OnboardingPage.tsx`'s `STEPS`
+  array) — that wizard is the actual ongoing "edit my profile" surface in
+  this app (always reachable from the sidebar, not a one-time flow), so
+  this is the same surface Organizations/Skills/Industries/Interests/
+  Connections already use, not a new pattern. Also added a read-only
+  "Projects" section to `MePage.tsx`'s summary view, matching how every
+  other section already displays there.
+- Verified end-to-end in a real browser as Taylor Kim (seeded with one
+  existing project, AI Insights Platform): confirmed via the API that she
+  started with just that one, added CDSP with a role ("QA Contributor")
+  through the new onboarding step, confirmed it appeared both via a direct
+  API call and on the `/me` summary page, then removed it through the same
+  step and confirmed via the API that only her original AI Insights
+  Platform assignment remained — untouched throughout. Zero console
+  errors. Both real production builds (`npm run build`, frontend and
+  backend) and both test suites pass (9 backend / 18 frontend).

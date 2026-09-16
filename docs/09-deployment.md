@@ -32,52 +32,156 @@ balancer, no auto-scaling — this is a pitch prototype, not a live product).
   browsers over non-HTTPS origins). Turn it on once TLS is in front of the
   app (see [Adding TLS](#adding-tls-later) below).
 
-## Deploying to an EC2 instance
+## Part 1 — Launch the EC2 instance (AWS Console)
 
-**Prerequisites**: an EC2 instance (Ubuntu 22.04 LTS, `t3.small` or larger —
-Postgres + Node + nginx all on one box wants at least 2GB RAM), with the
-security group allowing inbound **22** (SSH, from your IP) and **80** (HTTP,
-from wherever leadership will connect).
+1. Sign in to the [AWS Console](https://console.aws.amazon.com/) and go to
+   **EC2** → **Instances** → **Launch instances**.
+2. **Name**: something identifiable, e.g. `docme360-demo`.
+3. **Application and OS Images (AMI)**: choose whichever **Ubuntu Server
+   ... LTS (HVM), SSD Volume Type** entry is the second-newest in the Quick
+   Start list (not the newest, not any "with SQL Server" variant) — AWS's
+   default keeps shifting to the latest LTS release as new ones ship, and
+   the newest one at any given time is often too recent to have a track
+   record for exactly how Docker/apt behave on it. As of writing this is
+   **24.04 LTS**; by the time you're doing this it may have moved on
+   again — same reasoning applies, just shift by one.
+4. **Instance type**: `t3.small` at minimum. Postgres + the Node backend +
+   nginx all run on one box, and `t3.micro`'s 1 GB RAM is too tight for all
+   three plus building two Docker images. `t3.small` (2 GB RAM) is
+   comfortable; go to `t3.medium` if you want headroom.
+5. **Key pair (login)**: click **Create new key pair** if you don't already
+   have one — name it, choose **ED25519** (modern, smaller, fully supported
+   by OpenSSH and Ubuntu 24.04) with **.pem** format (not `.ppk` — that's
+   PuTTY-specific and won't work with the `ssh` command used below), and
+   download it. You'll need this file to SSH in; it can't be re-downloaded
+   later.
+6. **Network settings**: click **Edit** and configure the security group
+   directly at launch (simpler than editing it afterward):
+   - Rule 1 — SSH, port 22, source **My IP** (not Anywhere — no reason to
+     expose SSH to the whole internet).
+   - Rule 2 — HTTP, port 80, source **Anywhere (0.0.0.0/0)** — this is what
+     leadership will actually connect to.
+   - (Skip HTTPS/443 for now; add it later if you set up a real domain and
+     TLS — see [Adding TLS](#adding-tls-later).)
+7. **Configure storage**: bump this up from the 8 GB default to **30 GB**
+   (gp3) — Docker images, Postgres data, and build layers add up faster
+   than the default allows.
+8. Click **Launch instance**. Wait for **Instance state** to show
+   **Running** and **Status check** to show **2/2 checks passed** (a minute
+   or two).
+9. **(Recommended) Allocate an Elastic IP** so the public address doesn't
+   change if you stop/restart the instance: EC2 → **Elastic IPs** →
+   **Allocate Elastic IP address** → **Allocate**, then select it →
+   **Actions** → **Associate Elastic IP address** → pick your instance.
+   Note this IP (or the instance's public IPv4 DNS if you skip this step) —
+   you'll use it everywhere below as `<PUBLIC_IP>`.
 
-1. **Install Docker** on the instance:
-   ```sh
-   curl -fsSL https://get.docker.com | sudo sh
-   sudo usermod -aG docker $USER
-   # log out and back in for the group change to take effect
-   ```
+## Part 2 — Connect and install Docker
 
-2. **Get the code onto the instance** (clone the repo, or `scp` a tarball —
-   whichever matches how this repo is hosted for you).
+10. On your own machine, lock down the key file's permissions (required on
+    macOS/Linux; on Windows, right-click the file → Properties → Security
+    and restrict it to just you), then SSH in:
+    ```sh
+    chmod 400 your-key.pem
+    ssh -i your-key.pem ubuntu@<PUBLIC_IP>
+    ```
+11. Update packages and install Docker:
+    ```sh
+    sudo apt-get update && sudo apt-get upgrade -y
+    curl -fsSL https://get.docker.com | sudo sh
+    sudo usermod -aG docker $USER
+    ```
+    Log out (`exit`) and SSH back in for the group change to take effect.
+    Confirm both Docker and the Compose plugin are present:
+    ```sh
+    docker --version
+    docker compose version
+    ```
 
-3. **Configure secrets** — from the repo root:
-   ```sh
-   cp .env.production.example .env
-   openssl rand -base64 32   # paste the output in as JWT_SECRET
-   ```
-   Edit `.env` and fill in `JWT_SECRET`, `POSTGRES_PASSWORD` (a real one, not
-   the local-dev default), and `PUBLIC_ORIGIN` (e.g. `http://<ec2-public-ip>`).
+## Part 3 — Get the code onto the instance
 
-4. **Set up the Basic Auth credential** (this is what actually gates the demo):
-   ```sh
-   sudo apt-get install -y apache2-utils
-   htpasswd -c .htpasswd demo   # prompts for a password; pick a real one
-   ```
-   Share the `demo` / `<password>` pair directly with leadership — this
-   credential is the access control, so don't post it anywhere public.
+Pick whichever matches how this repo is hosted:
 
-5. **Build and start everything**:
-   ```sh
-   docker compose -f docker-compose.prod.yml up -d --build
-   ```
+- **If it's in a git remote you can reach from the instance** (e.g. a
+  GitHub repo):
+  ```sh
+  git clone <your-repo-url> DocMeWeb
+  cd DocMeWeb
+  ```
+  For a private repo, either use an HTTPS URL with a personal access token,
+  or generate an SSH key on the instance (`ssh-keygen`) and add it as a
+  deploy key on the repo host.
 
-6. **Seed the database** (first run only):
-   ```sh
-   docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
-   ```
+- **If you're copying it up directly from your own machine** (no shared
+  remote), run this from your machine, not the instance — it excludes
+  `node_modules` and build output so the transfer is small:
+  ```sh
+  rsync -avz --exclude node_modules --exclude dist --exclude .git \
+    -e "ssh -i your-key.pem" \
+    /path/to/DocMeWeb/ ubuntu@<PUBLIC_IP>:~/DocMeWeb/
+  ```
 
-7. Visit `http://<ec2-public-ip>/` — the browser will prompt for the Basic
-   Auth credential from step 4, then the app's own mocked identity picker
-   loads exactly as it does locally.
+## Part 4 — Configure secrets
+
+12. From the repo root on the instance:
+    ```sh
+    cd ~/DocMeWeb
+    cp .env.production.example .env
+    openssl rand -base64 32
+    ```
+    Copy that command's output, then edit `.env` (`nano .env`) and fill in:
+    - `JWT_SECRET` — paste the value you just generated.
+    - `POSTGRES_PASSWORD` — a real password, not the local-dev default.
+    - `PUBLIC_ORIGIN` — `http://<PUBLIC_IP>`.
+    - Leave `COOKIE_SECURE=false` and `RUN_SEED_ON_START=false` for now.
+
+## Part 5 — Set up the Basic Auth gate
+
+This is the actual access control for the hosted demo — the app's own login
+is a mocked identity picker with no real password, so this is what stops a
+leaked URL alone from being enough to get in.
+
+13. ```sh
+    sudo apt-get install -y apache2-utils
+    htpasswd -c .htpasswd demo
+    ```
+    Pick a real password when prompted. You'll share the `demo` /
+    `<password>` pair directly with leadership — not posted anywhere public.
+
+## Part 6 — Build and launch
+
+14. ```sh
+    docker compose -f docker-compose.prod.yml up -d --build
+    ```
+    This builds both images and starts Postgres, the backend, and nginx.
+    First run takes a few minutes.
+15. Watch the backend apply migrations and confirm it starts cleanly:
+    ```sh
+    docker compose -f docker-compose.prod.yml logs backend
+    ```
+    You should see each migration listed as applied, then
+    `DocMe360 backend listening on http://localhost:4000`.
+16. Seed the database (first run only):
+    ```sh
+    docker compose -f docker-compose.prod.yml exec backend npx prisma db seed
+    ```
+
+## Part 7 — Verify it
+
+17. Visit `http://<PUBLIC_IP>/` in a browser. You should be prompted for
+    the Basic Auth credential from Part 5 first, then land on the app's own
+    mocked identity picker exactly as it looks locally. Log in as a couple
+    of different seeded people and click through a few pages to confirm
+    everything's working before sending the link onward.
+
+## Sharing it with leadership
+
+Send the URL and the Basic Auth `demo`/`<password>` pair directly (not in a
+public channel). Worth saying explicitly when you send it: the in-app login
+is a mocked picker with no real password, so once someone is past the Basic
+Auth gate they can act as any seeded person, including Admin — fine for a
+controlled walkthrough with people you've sent the link to directly, not
+something to post more broadly.
 
 ## Resetting demo data between sessions
 
@@ -91,6 +195,24 @@ docker compose -f docker-compose.prod.yml exec backend npx prisma migrate reset 
 This wipes and reseeds from scratch. Do this deliberately between demo
 sessions, not automatically — `RUN_SEED_ON_START=true` would fight with
 anything entered live during a walkthrough.
+
+## Day-to-day operations
+
+- **Stop the instance when it's not being demoed** (EC2 console → select
+  instance → **Instance state** → **Stop**) to avoid paying for idle
+  compute — the Elastic IP and EBS volume (and everything in Postgres)
+  persist through a stop/start. Starting it back up keeps the same
+  Elastic IP if you allocated one in Part 1.
+- **Deploying code changes**: get the updated code onto the instance the
+  same way as Part 3, then:
+  ```sh
+  docker compose -f docker-compose.prod.yml up -d --build
+  ```
+  This rebuilds only what changed and restarts affected containers; the
+  Postgres data volume is untouched.
+- **Tearing everything down**: `docker compose -f docker-compose.prod.yml
+  down -v` removes the containers *and* the Postgres volume (all data
+  gone) — only run this when you're actually done with the demo data.
 
 ## Adding TLS later
 
