@@ -164,6 +164,42 @@ meRouter.delete("/organizations/:personOrganizationId", requireAuth, async (req,
   res.status(204).send();
 });
 
+const addProjectSchema = z.object({
+  projectId: z.string().min(1),
+  role: z.string().optional(),
+});
+
+// Unlike organizations (which allow multiple stints at the same org),
+// PersonProject is unique per person+project, so this upserts rather than
+// creates — re-adding the same project just updates your role on it.
+meRouter.post("/projects", requireAuth, async (req, res) => {
+  const parsed = addProjectSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid project payload" });
+    return;
+  }
+
+  const { projectId, role } = parsed.data;
+  const personProject = await prisma.personProject.upsert({
+    where: { personId_projectId: { personId: req.session!.personId, projectId } },
+    update: { role },
+    create: { personId: req.session!.personId, projectId, role },
+    include: { project: { select: { id: true, canonicalName: true } } },
+  });
+
+  res.status(201).json(personProject);
+});
+
+meRouter.delete("/projects/:projectId", requireAuth, async (req, res) => {
+  await prisma.personProject
+    .delete({
+      where: { personId_projectId: { personId: req.session!.personId, projectId: req.params.projectId } },
+    })
+    .catch(() => null);
+
+  res.status(204).send();
+});
+
 const addConnectionSchema = z.object({
   connectedPersonId: z.string().min(1),
   relationshipType: z.enum([

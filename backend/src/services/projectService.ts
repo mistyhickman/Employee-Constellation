@@ -2,9 +2,9 @@ import { prisma } from "../lib/prisma.js";
 
 const personSelect = { id: true, name: true, jobTitle: true, photoUrl: true } as const;
 
-export async function browseProjects() {
+export async function browseProjects(query = "") {
   return prisma.project.findMany({
-    where: { active: true },
+    where: { active: true, canonicalName: { contains: query, mode: "insensitive" } },
     include: {
       clientOrganization: { select: { id: true, canonicalName: true } },
       industry: { select: { id: true, canonicalName: true } },

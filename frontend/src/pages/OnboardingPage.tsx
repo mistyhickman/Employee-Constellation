@@ -8,6 +8,7 @@ import { SkillsStep } from "./onboarding/SkillsStep";
 import { IndustriesStep } from "./onboarding/IndustriesStep";
 import { OrganizationsStep } from "./onboarding/OrganizationsStep";
 import { InterestsStep } from "./onboarding/InterestsStep";
+import { ProjectsStep } from "./onboarding/ProjectsStep";
 import { ConnectionsStep } from "./onboarding/ConnectionsStep";
 import type { MeResponse } from "../types";
 
@@ -16,6 +17,7 @@ const STEPS = [
   { key: "industries", label: "Industries", Component: IndustriesStep },
   { key: "organizations", label: "Organizations", Component: OrganizationsStep },
   { key: "interests", label: "Interests", Component: InterestsStep },
+  { key: "projects", label: "Projects", Component: ProjectsStep },
   { key: "connections", label: "Connections", Component: ConnectionsStep },
 ];
 

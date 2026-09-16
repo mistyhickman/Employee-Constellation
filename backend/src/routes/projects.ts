@@ -4,8 +4,9 @@ import { browseProjects, getProjectNetwork } from "../services/projectService.js
 
 export const projectsRouter = Router();
 
-projectsRouter.get("/", requireAuth, async (_req, res) => {
-  const projects = await browseProjects();
+projectsRouter.get("/", requireAuth, async (req, res) => {
+  const q = typeof req.query.q === "string" ? req.query.q : "";
+  const projects = await browseProjects(q);
   res.json(projects);
 });
 

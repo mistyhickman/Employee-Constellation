@@ -96,6 +96,18 @@ export function MePage() {
         </ul>
       </Section>
 
+      <Section title="Projects">
+        {p.projects.length === 0 && <Empty label="No projects added yet." />}
+        <ul className="flex flex-col gap-1">
+          {p.projects.map((proj) => (
+            <li key={proj.id} className="text-sm text-slate-700">
+              {proj.project.canonicalName}
+              {proj.role ? ` — ${proj.role}` : ""}
+            </li>
+          ))}
+        </ul>
+      </Section>
+
       <Section title="Interests">
         {p.interests.length === 0 && <Empty label="No interests added yet." />}
         <ul className="flex flex-wrap gap-2">
