@@ -7,6 +7,7 @@ export interface SearchCriteria {
   industryIds?: string[];
   organizationIds?: string[];
   interestIds?: string[];
+  projectIds?: string[];
 }
 
 export async function searchPeople(criteria: SearchCriteria) {
@@ -28,6 +29,9 @@ export async function searchPeople(criteria: SearchCriteria) {
   for (const interestId of criteria.interestIds ?? []) {
     conditions.push({ interests: { some: { interestId } } });
   }
+  for (const projectId of criteria.projectIds ?? []) {
+    conditions.push({ projects: { some: { projectId } } });
+  }
 
   return prisma.person.findMany({
     where: conditions.length > 0 ? { AND: conditions } : undefined,
@@ -38,6 +42,7 @@ export async function searchPeople(criteria: SearchCriteria) {
       department: true,
       skills: { select: { skill: { select: { id: true, canonicalName: true } } } },
       industries: { select: { industry: { select: { id: true, canonicalName: true } } } },
+      projects: { select: { project: { select: { id: true, canonicalName: true } } } },
     },
     take: 50,
     orderBy: { name: "asc" },

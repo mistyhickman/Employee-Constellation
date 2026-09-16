@@ -3,9 +3,10 @@ import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { TaxonomyPicker } from "../components/TaxonomyPicker";
+import { ProjectPicker } from "../components/ProjectPicker";
 import { ChipList } from "../components/ChipList";
 import { useDebouncedValue } from "../hooks/useDebouncedValue";
-import type { SearchResultPerson, TaxonomyEntry } from "../types";
+import type { ProjectBrowseEntry, SearchResultPerson, TaxonomyEntry } from "../types";
 
 export function DirectoryPage() {
   const [urlParams] = useSearchParams();
@@ -14,12 +15,14 @@ export function DirectoryPage() {
   const [skills, setSkills] = useState<TaxonomyEntry[]>([]);
   const [industries, setIndustries] = useState<TaxonomyEntry[]>([]);
   const [organizations, setOrganizations] = useState<TaxonomyEntry[]>([]);
+  const [projects, setProjects] = useState<ProjectBrowseEntry[]>([]);
 
   const params = new URLSearchParams();
   if (debouncedName.trim()) params.set("q", debouncedName.trim());
   if (skills.length) params.set("skillIds", skills.map((s) => s.id).join(","));
   if (industries.length) params.set("industryIds", industries.map((i) => i.id).join(","));
   if (organizations.length) params.set("organizationIds", organizations.map((o) => o.id).join(","));
+  if (projects.length) params.set("projectIds", projects.map((p) => p.id).join(","));
 
   const results = useQuery({
     queryKey: ["search", params.toString()],
@@ -31,8 +34,8 @@ export function DirectoryPage() {
       <header className="mb-8">
         <h1 className="text-2xl font-semibold text-slate-900">Directory</h1>
         <p className="mt-1 text-sm text-slate-500">
-          Find coworkers by name, or combine skills, industries, and organizations to find expertise — e.g. AWS +
-          Terraform, or FHIR + Healthcare.
+          Find coworkers by name, or combine skills, industries, organizations, and projects to find expertise —
+          e.g. AWS + Terraform, or FHIR + Healthcare.
         </p>
       </header>
 
@@ -104,6 +107,21 @@ export function DirectoryPage() {
             excludeIds={organizations.map((o) => o.id)}
           />
         </div>
+
+        <div>
+          <ChipList
+            items={projects.map((p) => ({ id: p.id, label: p.canonicalName }))}
+            onRemove={(id) => setProjects((prev) => prev.filter((p) => p.id !== id))}
+            emptyLabel="No project filters."
+            ariaLabel="Project filters"
+          />
+          <ProjectPicker
+            label="Filter by project"
+            placeholder="e.g. CDSP…"
+            onSelect={(entry) => setProjects((prev) => [...prev, entry])}
+            excludeIds={projects.map((p) => p.id)}
+          />
+        </div>
       </div>
 
       <section aria-labelledby="results-heading">
@@ -126,7 +144,7 @@ export function DirectoryPage() {
                 {person.jobTitle}
                 {person.department ? ` · ${person.department}` : ""}
               </p>
-              {(person.skills.length > 0 || person.industries.length > 0) && (
+              {(person.skills.length > 0 || person.industries.length > 0 || person.projects.length > 0) && (
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {person.skills.map((s) => (
                     <span
@@ -139,6 +157,11 @@ export function DirectoryPage() {
                   {person.industries.map((i) => (
                     <span key={i.industry.id} className="rounded-full bg-amber-50 px-2 py-0.5 text-xs text-amber-700">
                       {i.industry.canonicalName}
+                    </span>
+                  ))}
+                  {person.projects.map((p) => (
+                    <span key={p.project.id} className="rounded-full bg-teal-50 px-2 py-0.5 text-xs text-teal-700">
+                      {p.project.canonicalName}
                     </span>
                   ))}
                 </div>
