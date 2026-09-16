@@ -230,6 +230,13 @@ export function buildTaxonomyConstellation(network: TaxonomyNetworkResponse): Co
     }
   }
 
+  if (network.relatedProjects.length > 0) {
+    addCategory("category-project", "project");
+    for (const p of network.relatedProjects) {
+      addLeaf("category-project", `project-${p.id}`, p.id, p.canonicalName, "project");
+    }
+  }
+
   if (network.relatedInterestsProfessional.length > 0) {
     addCategory("category-professionalInterest", "professionalInterest");
     for (const i of network.relatedInterestsProfessional) {

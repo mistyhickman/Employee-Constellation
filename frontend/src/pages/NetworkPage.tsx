@@ -334,17 +334,21 @@ function SharedContextPanel({ name, context }: { name: string; context: SharedCo
 }
 
 function TaxonomyInfoPanel({ network }: { network: TaxonomyNetworkResponse }) {
-  const allGroups: { label: string; type: TaxonomyType; items: RelatedCount[] }[] = [
+  const allGroups: { label: string; type: TaxonomyType | "project"; items: RelatedCount[] }[] = [
     { label: "Related skills", type: "skills" as const, items: network.relatedSkills },
     { label: "Related industries", type: "industries" as const, items: network.relatedIndustries },
     { label: "Related organizations", type: "organizations" as const, items: network.relatedOrganizations },
+    { label: "Related projects", type: "project" as const, items: network.relatedProjects },
     { label: "Related professional interests", type: "interests" as const, items: network.relatedInterestsProfessional },
     { label: "Related personal interests", type: "interests" as const, items: network.relatedInterestsPersonal },
   ];
   // Note: no need to filter out the category matching network.center.type —
   // the backend aggregate already excludes the center's own specific entry
   // from its own category, so e.g. "Related skills" still correctly shows
-  // other skills even when centered on a skill.
+  // other skills even when centered on a skill. Categories with no logical
+  // connection to this center type (e.g. interests when centered on an
+  // organization) come back as empty arrays from the backend and are
+  // filtered out here rather than shown as empty sections.
   const groups = allGroups.filter((g) => g.items.length > 0);
 
   return (
@@ -590,33 +594,25 @@ function TaxonomySectionList({ network }: { network: TaxonomyNetworkResponse }) 
           </ul>
         )}
       </Section>
-      <Section title="Related Skills & Technologies">
-        {network.relatedSkills.length === 0 ? <Empty /> : <ChipRow items={network.relatedSkills.map((s) => s.canonicalName)} />}
-      </Section>
-      <Section title="Related Industries & Domains">
-        {network.relatedIndustries.length === 0 ? <Empty /> : <ChipRow items={network.relatedIndustries.map((i) => i.canonicalName)} />}
-      </Section>
-      <Section title="Related Organizations">
-        {network.relatedOrganizations.length === 0 ? (
-          <Empty />
-        ) : (
-          <ChipRow items={network.relatedOrganizations.map((o) => o.canonicalName)} />
-        )}
-      </Section>
-      <Section title="Related Professional Interests">
-        {network.relatedInterestsProfessional.length === 0 ? (
-          <Empty />
-        ) : (
-          <ChipRow items={network.relatedInterestsProfessional.map((i) => i.canonicalName)} />
-        )}
-      </Section>
-      <Section title="Related Personal Interests">
-        {network.relatedInterestsPersonal.length === 0 ? (
-          <Empty />
-        ) : (
-          <ChipRow items={network.relatedInterestsPersonal.map((i) => i.canonicalName)} />
-        )}
-      </Section>
+      {/* Categories with no logical connection to this center type (e.g.
+          interests when centered on an organization) come back as empty
+          arrays from the backend and are skipped here entirely, rather than
+          shown as an always-present "nothing here" section — matching the
+          graph view, which never draws a category with no leaves. */}
+      {[
+        { label: "Related Skills & Technologies", items: network.relatedSkills },
+        { label: "Related Industries & Domains", items: network.relatedIndustries },
+        { label: "Related Organizations", items: network.relatedOrganizations },
+        { label: "Related Projects", items: network.relatedProjects },
+        { label: "Related Professional Interests", items: network.relatedInterestsProfessional },
+        { label: "Related Personal Interests", items: network.relatedInterestsPersonal },
+      ]
+        .filter((group) => group.items.length > 0)
+        .map((group) => (
+          <Section key={group.label} title={group.label}>
+            <ChipRow items={group.items.map((i) => i.canonicalName)} />
+          </Section>
+        ))}
     </div>
   );
 }

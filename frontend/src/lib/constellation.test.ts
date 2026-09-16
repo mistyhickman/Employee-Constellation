@@ -138,6 +138,7 @@ describe("buildTaxonomyConstellation", () => {
       relatedSkills: [],
       relatedIndustries: [],
       relatedOrganizations: [],
+      relatedProjects: [],
       relatedInterestsProfessional: [],
       relatedInterestsPersonal: [],
       ...overrides,
@@ -168,6 +169,13 @@ describe("buildTaxonomyConstellation", () => {
     expect(nodes).toContainEqual({ id: "industry-health", entityId: "health", label: "Healthcare", type: "industry", val: 2 });
     expect(links).toContainEqual({ source: "category-skill", target: "skill-aws" });
     expect(links).toContainEqual({ source: "category-industry", target: "industry-health" });
+  });
+
+  it("adds related projects as their own categorized node type", () => {
+    const network = emptyNetwork({ relatedProjects: [{ id: "cdsp", canonicalName: "CDSP", count: 3 }] });
+    const { nodes, links } = buildTaxonomyConstellation(network);
+    expect(nodes).toContainEqual({ id: "project-cdsp", entityId: "cdsp", label: "CDSP", type: "project", val: 2 });
+    expect(links).toContainEqual({ source: "category-project", target: "project-cdsp" });
   });
 
   it("keeps related professional and personal interests as separate categories", () => {
