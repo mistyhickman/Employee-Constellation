@@ -174,6 +174,7 @@ export interface TaxonomyNetworkResponse {
   relatedSkills: RelatedCount[];
   relatedIndustries: RelatedCount[];
   relatedOrganizations: RelatedCount[];
+  relatedProjects: RelatedCount[];
   relatedInterestsProfessional: RelatedCount[];
   relatedInterestsPersonal: RelatedCount[];
 }
