@@ -1,0 +1,65 @@
+[
+  {
+    "externalId": "mock-entra-priya",
+    "name": "Priya Natarajan",
+    "email": "priya.natarajan@docme360.com",
+    "jobTitle": "Software Engineer II",
+    "department": "Health Solutions Engineering",
+    "managerExternalId": "mock-entra-marcus",
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-marcus",
+    "name": "Marcus Webb",
+    "email": "marcus.webb@docme360.com",
+    "jobTitle": "Engineering Manager",
+    "department": "Health Solutions Engineering",
+    "managerExternalId": null,
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-admin",
+    "name": "Alex Rivera",
+    "email": "alex.rivera@docme360.com",
+    "jobTitle": "People Operations Lead",
+    "department": "People Operations",
+    "managerExternalId": null,
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-misty",
+    "name": "Misty Hickman",
+    "email": "misty.hickman@docme360.com",
+    "jobTitle": "Lead Full Stack Engineer",
+    "department": "Engineering",
+    "managerExternalId": null,
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-jordan",
+    "name": "Jordan Smith",
+    "email": "jordan.smith@docme360.com",
+    "jobTitle": "Senior Software Engineer",
+    "department": "Engineering",
+    "managerExternalId": null,
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-alexchen",
+    "name": "Alex Chen",
+    "email": "alex.chen@docme360.com",
+    "jobTitle": "Software Engineer",
+    "department": "Engineering",
+    "managerExternalId": null,
+    "photoUrl": null
+  },
+  {
+    "externalId": "mock-entra-taylor",
+    "name": "Taylor Kim",
+    "email": "taylor.kim@docme360.com",
+    "jobTitle": "Data Scientist",
+    "department": "Data & AI",
+    "managerExternalId": null,
+    "photoUrl": null
+  }
+]

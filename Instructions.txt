@@ -1,0 +1,931 @@
+I want to design and eventually build an internal DocMe360 application that modernizes and replaces an existing Microsoft Whiteboard-based onboarding exercise.
+
+BACKGROUND
+
+During DocMe360 employee onboarding, employees currently use Microsoft Whiteboard to add sticky notes into several categories describing themselves and their professional background. The exercise captures useful organizational information, but the information is largely unstructured, difficult to maintain, difficult to search, and does not fully capitalize on the relationships that exist between employees, skills, industries, organizations, interests, and professional connections.
+
+I want to rethink this as a modern internal application.
+
+The initial use case is employee onboarding, but the larger vision is an internal organizational knowledge and relationship platform that helps DocMe360 understand:
+
+- Who our people are
+- What they know
+- What they have done
+- Where they have worked
+- Which industries and domains they understand
+- What they are interested in
+- What they want to learn
+- Who they know
+- Who inside DocMe360 shares similar experience
+- Where expertise exists within the company
+- How people, skills, projects, clients, industries, technologies, and interests connect
+
+Think of the long-term product as a combination of an employee expertise directory, skills inventory, relationship graph, organizational knowledge graph, onboarding experience, mentorship discovery tool, and internal networking platform.
+
+The application should feel modern, polished, highly interactive, and distinctly more sophisticated than a traditional HR form or directory.
+
+CORE PRODUCT EXPERIENCE
+
+When a new employee first enters the application, they should be guided through an intuitive onboarding experience for building their professional profile.
+
+Avoid presenting the experience as one enormous form.
+
+Consider progressive disclosure, autocomplete, searchable selections, tags/chips, interactive cards, floating nodes/clouds, animations, and other modern interaction patterns.
+
+As information is entered, visually represent it around the employee so that the employee can see their professional "constellation" developing.
+
+For example:
+
+                         AWS
+                          |
+           Healthcare -- PERSON -- Artificial Intelligence
+                          |
+                       React
+                          |
+                         VA
+
+The visual concept should eventually evolve into an interactive network/web/constellation showing relationships between:
+
+People
+Skills
+Technologies
+Companies
+Government agencies
+Clients
+Projects
+Industries
+Professional interests
+Personal interests
+Communities
+Areas someone wants to learn
+Professional connections
+
+The visualization should not become visual clutter. Structured forms/search interfaces should be used when they provide better usability, while the graph should primarily provide discovery and exploration.
+
+USER PROFILE / DATA COLLECTION
+
+Design the onboarding/profile experience to collect information such as:
+
+BASIC PROFILE
+
+- Name
+- Preferred name
+- Pronouns, optionally
+- Profile photograph
+- Job title
+- Department/team
+- Manager
+- Work email
+- Location/time zone
+- Short professional biography
+
+Whenever possible, information already available through Microsoft should be populated automatically rather than requiring employees to re-enter it.
+
+SKILLS AND TECHNOLOGIES
+
+Examples:
+
+- Java
+- Kotlin
+- Spring Boot
+- React
+- TypeScript
+- AWS
+- Terraform
+- Docker
+- FHIR
+- Artificial Intelligence
+- Prompt Engineering
+- Data Engineering
+- Product Management
+- UX
+- Accessibility
+
+For each skill, consider allowing:
+
+- Skill/technology
+- Proficiency level
+- Years of experience
+- Last used
+- Interested in mentoring others
+- Interested in learning more
+- Interested in projects using this skill
+- Optional notes/context
+
+Avoid duplicate taxonomy entries such as:
+
+JavaScript
+Javascript
+JS
+Java Script
+
+Use canonical values, aliases, autocomplete, and potentially administrator-managed taxonomies.
+
+INDUSTRIES / DOMAINS
+
+Examples:
+
+- Healthcare
+- Federal Government
+- State/Local Government
+- Transportation
+- Benefits
+- Food Security
+- Hospitality
+- Information Technology
+- Financial Services
+
+Allow employees to indicate depth of experience where appropriate.
+
+COMPANIES / ORGANIZATIONS / AGENCIES
+
+Capture organizations the employee has meaningful professional experience with.
+
+Examples might include:
+
+- Department of Veterans Affairs
+- USCIS
+- Previous employers
+- Federal agencies
+- Commercial organizations
+
+Potential attributes:
+
+- Organization
+- Relationship/type of experience
+- Approximate dates
+- Role
+- Relevant skills
+- Relevant projects
+- Optional description
+
+Do not require employees to disclose information they should not share.
+
+PROJECT / PROGRAM EXPERIENCE
+
+Potentially allow employees to associate themselves with projects, programs, contracts, or products.
+
+Examples:
+
+Person -> worked on -> Project
+Project -> used -> AWS
+Project -> belonged to -> Healthcare
+Project -> supported -> VA
+
+This may be a later-phase capability rather than MVP.
+
+PROFESSIONAL INTERESTS
+
+Examples:
+
+- Applied AI
+- AI governance
+- Cloud architecture
+- Healthcare interoperability
+- Modernization
+- DevSecOps
+- Product strategy
+- Data analytics
+
+Allow users to identify both current interests and areas they want to explore.
+
+PERSONAL INTERESTS
+
+Provide an optional section where employees can share appropriate personal interests that help coworkers connect socially.
+
+Examples:
+
+Gardening
+Gaming
+Travel
+Photography
+Cooking
+Running
+Animals
+Music
+
+These should be clearly optional and should not be used for staffing or employment decisions.
+
+CONTACTS / CONNECTIONS
+
+Allow employees to identify professional connections or relationships.
+
+Consider multiple types:
+
+- Previously worked together
+- Current teammate
+- Mentor
+- Mentee
+- Subject-matter expert I know
+- Professional contact
+- Community connection
+- Client/industry connection
+
+Carefully design privacy and visibility controls around relationship data.
+
+MICROSOFT AUTHENTICATION AND AUTHORIZATION
+
+DocMe360 already uses Microsoft's ecosystem for employee identity and access.
+
+The application should NOT create a separate username/password authentication system.
+
+Design Microsoft Entra ID integration as a foundational requirement.
+
+Use:
+
+- Microsoft Entra ID
+- OpenID Connect / OAuth 2.0
+- Microsoft-supported authentication libraries
+- Authorization Code Flow with PKCE where appropriate
+- Microsoft Single Sign-On
+
+The desired experience is:
+
+Employee opens application
+        ->
+Existing DocMe360 Microsoft identity recognized
+        ->
+Microsoft Entra authenticates employee
+        ->
+Application receives identity/token
+        ->
+Application determines authorization
+        ->
+Employee enters application
+
+Where possible, users already authenticated to Microsoft 365 should experience seamless SSO.
+
+Use stable Microsoft directory identifiers rather than relying solely on email addresses as application identity keys.
+
+Explore Microsoft Graph for safely retrieving appropriate directory information such as:
+
+- Name
+- Email
+- Job title
+- Department
+- Manager
+- Profile photo
+
+Do not unnecessarily ask users for information already available through the corporate directory.
+
+AUTHORIZATION
+
+Authentication and authorization must remain separate concepts.
+
+Entra determines WHO the employee is.
+
+The application determines WHAT they are allowed to do.
+
+Consider application roles such as:
+
+Employee
+Manager
+People Operations
+Talent/Resource Manager
+Administrator
+
+Consider mapping Microsoft Entra groups to application roles rather than maintaining employee authorization manually.
+
+Follow least-privilege principles.
+
+Do not request broad Microsoft Graph permissions simply because they are convenient.
+
+NETWORK / KNOWLEDGE GRAPH
+
+The signature feature of the application should be an interactive organizational network.
+
+Conceptually model information as nodes and relationships.
+
+Example:
+
+Person
+ |
+ +-- HAS_SKILL --> AWS
+ |
+ +-- WORKED_WITH --> VA
+ |
+ +-- INTERESTED_IN --> Artificial Intelligence
+ |
+ +-- WORKED_ON --> CDSP
+ |
+ +-- KNOWS --> Person B
+
+Another employee might connect:
+
+Person B
+ |
+ +-- HAS_SKILL --> AWS
+ |
+ +-- HAS_SKILL --> FHIR
+ |
+ +-- WORKED_ON --> CDSP
+
+The application can therefore identify:
+
+Person A <-- AWS --> Person B
+Person A <-- CDSP --> Person B
+
+Create an interactive visual graph/web/constellation where users can explore these relationships.
+
+Clicking a node should expand relevant relationships rather than displaying the entire organizational graph simultaneously.
+
+Examples:
+
+Click "FHIR"
+-> display employees with FHIR experience.
+
+Click "VA"
+-> display employees with VA experience.
+
+Click an employee
+-> display their skills, industries, projects, interests, and connections.
+
+Click "Artificial Intelligence"
+-> display employees, communities, projects, and related skills.
+
+Allow graph filtering by relationship type, expertise, organization, industry, project, team, etc.
+
+CONNECTION DISCOVERY
+
+One of the most important experiences should be "connect the dots."
+
+When viewing another employee, show useful shared context such as:
+
+"You and Jordan have 6 things in common."
+
+AWS
+Healthcare
+VA
+React
+Government
+Artificial Intelligence
+
+Also consider complementary connections.
+
+For example:
+
+"You are interested in learning FHIR. Priya has deep FHIR experience and has indicated that she is willing to mentor others."
+
+Or:
+
+"You have strong AI experience. Marcus has strong VA security/ATO experience. You both work in healthcare technology."
+
+The application should facilitate human connection rather than simply rank employees.
+
+EXPERTISE SEARCH
+
+Provide powerful structured search.
+
+Examples:
+
+Find people with:
+AWS + Terraform
+
+Find:
+FHIR + Healthcare + VA
+
+Find:
+Kotlin + Spring Boot + AWS
+
+Eventually consider natural-language search such as:
+
+"Who should I talk to about building an AI application in AWS for healthcare?"
+
+The system should translate the request into searches over employee-approved organizational data.
+
+Do not allow AI to invent employee skills or experience.
+
+AI-generated recommendations must be traceable to actual profile/organizational data.
+
+STAFFING / RESOURCE DISCOVERY
+
+Longer term, authorized users could use the platform to discover expertise when staffing teams.
+
+Example:
+
+Need:
+2 AWS engineers
+1 FHIR SME
+1 React developer
+Healthcare experience preferred
+
+The application could identify potential matches based upon structured profile data.
+
+Carefully distinguish "discovery support" from automated employment decision-making.
+
+COMMUNITIES OF PRACTICE
+
+Use skill and interest information to identify natural internal communities.
+
+Examples:
+
+Artificial Intelligence
+FHIR
+AWS
+DevOps
+Accessibility
+Product Management
+
+The application might say:
+
+"23 employees have AI experience."
+"14 employees want to learn AI."
+"8 employees are willing to mentor others in AI."
+
+This could help establish or grow internal Communities of Practice.
+
+MENTORSHIP
+
+Allow employees to indicate:
+
+I can mentor others in X.
+I want mentoring in X.
+I want to learn X.
+
+Use this to suggest useful internal connections.
+
+KNOWLEDGE RISK / SKILLS GAP ANALYSIS
+
+Authorized leadership views could eventually identify organizational capability patterns.
+
+Examples:
+
+"We have 31 AWS practitioners but only four people with deep Terraform experience."
+
+"Only two employees currently report advanced FHIR experience."
+
+"17 employees want to develop AI skills."
+
+Avoid creating employee-surveillance mechanisms.
+
+The goal is organizational capability development, not individual performance monitoring.
+
+AUDITING AND DATA FRESHNESS
+
+Profile information should not become stale.
+
+Track metadata such as:
+
+Created by
+Created date
+Last updated
+Last confirmed
+Source
+Visibility
+Change history
+
+Example:
+
+Skill: AWS
+Level: Advanced
+Source: Employee
+Added: September 2026
+Last confirmed: September 2026
+
+Periodically prompt employees to confirm/update their profiles.
+
+Example:
+
+"It's been six months since you reviewed your profile. Anything changed?"
+
+Make updating information extremely easy.
+
+Consider an audit history for administrative and security-sensitive changes.
+
+DATA PROVENANCE
+
+It should always be possible to understand where information came from.
+
+Potential sources:
+
+Employee-entered
+Microsoft Entra / Microsoft Graph
+Administrator-managed
+Project system
+Future approved integration
+AI-suggested but employee-confirmed
+
+AI-suggested information should not become authoritative until approved where appropriate.
+
+PRIVACY AND VISIBILITY
+
+Privacy should be designed from the beginning.
+
+Consider visibility levels such as:
+
+Private
+Team
+Company
+Authorized leadership/operations
+
+Not every field necessarily needs the same visibility.
+
+Employees should understand what information others can see.
+
+Sensitive personal information should not be collected unnecessarily.
+
+Personal interests should be optional.
+
+Do not infer sensitive personal characteristics.
+
+Do not infer relationships from private communications.
+
+Do not analyze email, Teams messages, meetings, or communication frequency to secretly determine who knows whom.
+
+Explicit employee-provided connections are preferable.
+
+AI CAPABILITIES
+
+AI should enhance the application rather than become its gimmick.
+
+Potential AI capabilities include:
+
+1. Profile assistance
+
+Allow an employee to paste a professional bio or résumé and suggest structured entries.
+
+Example:
+
+"I've spent six years developing federal applications using Java and React and have worked with USCIS and VA. Recently I've focused on AWS and generative AI."
+
+Suggested:
+
+Java
+React
+Federal Government
+USCIS
+VA
+AWS
+Generative AI
+
+The employee approves/rejects each suggestion.
+
+2. Natural-language expertise search
+
+"Who knows FHIR and AWS?"
+
+3. Connection recommendations
+
+"You may want to meet Alex because..."
+
+Recommendations must explain WHY the connection was suggested.
+
+4. Skills normalization
+
+Map variations and related terminology into canonical taxonomy entries.
+
+5. Organizational capability insights
+
+Identify aggregate patterns without inventing employee information.
+
+Do not allow AI to silently modify profiles.
+
+DESIGN LANGUAGE
+
+The application should feel:
+
+Modern
+Clean
+Friendly
+Sophisticated
+High-tech
+Human
+Interactive
+Professional
+
+Avoid making it feel like:
+
+An HR database
+A SharePoint list
+A spreadsheet
+A giant web form
+A traditional employee directory
+
+Explore a visual language based around:
+
+Constellations
+Networks
+Nodes
+Floating clouds
+Connected dots
+Subtle movement
+Expandable clusters
+
+The employee should feel as though they are exploring DocMe360's collective knowledge rather than browsing records in a database.
+
+ACCESSIBILITY
+
+The visual graph cannot be the only way to access information.
+
+Everything available through the visualization must have an accessible alternative.
+
+Support:
+
+Keyboard navigation
+Screen readers
+Appropriate contrast
+Reduced-motion preferences
+Accessible forms
+Search/list representations of graph information
+Clear focus states
+
+Design accessibility from the beginning rather than retrofitting it.
+
+POTENTIAL USER EXPERIENCES
+
+EMPLOYEE
+
+Maintain profile.
+Discover coworkers.
+Find experts.
+Find mentors.
+Explore communities.
+Discover shared interests.
+
+NEW EMPLOYEE
+
+Complete onboarding.
+Discover people with shared backgrounds.
+Receive suggested introductions.
+Discover communities.
+Learn where expertise exists.
+
+MANAGER
+
+Understand team capabilities.
+Identify development opportunities.
+Discover expertise elsewhere in the company.
+
+PEOPLE/TALENT OPERATIONS
+
+Understand organizational capabilities.
+Identify skill gaps.
+Improve onboarding.
+Find potential staffing resources.
+
+COMMUNITY LEADER
+
+Discover employees interested in a subject.
+Identify potential mentors/speakers.
+Understand community growth.
+
+ADMINISTRATOR
+
+Manage taxonomies.
+Manage application roles.
+Review integrations.
+Audit changes.
+Manage application configuration.
+
+POTENTIAL DATA MODEL
+
+Think carefully about modeling this as relationships rather than simply columns in an Employee table.
+
+Core entities might include:
+
+Person
+Skill
+Organization
+Industry
+Interest
+Project
+Community
+Team
+Connection
+
+Relationship entities might include:
+
+PersonSkill
+PersonOrganization
+PersonIndustry
+PersonInterest
+PersonProject
+PersonConnection
+PersonCommunity
+ProjectSkill
+ProjectOrganization
+ProjectIndustry
+
+Relationships may contain their own attributes.
+
+For example:
+
+PersonSkill:
+proficiency
+yearsExperience
+lastUsed
+willingToMentor
+wantsToLearn
+source
+lastConfirmed
+
+Do not assume that a graph database is automatically necessary simply because the UI displays a graph.
+
+Evaluate whether a relational database such as PostgreSQL can model the MVP effectively before introducing a dedicated graph database.
+
+ARCHITECTURE
+
+Design the application using modern, maintainable technologies appropriate to DocMe360.
+
+Current relevant DocMe360 technologies may include:
+
+Frontend:
+React
+TypeScript
+
+Backend:
+Kotlin / Java
+Spring Boot
+or another architecture justified by the project's needs
+
+Cloud:
+AWS
+
+Infrastructure:
+Terraform
+
+Containers:
+Docker
+ECS/Fargate where appropriate
+
+Authentication:
+Microsoft Entra ID
+
+Microsoft integration:
+Microsoft Graph where justified
+
+Security:
+Least privilege
+Secure token validation
+Appropriate encryption
+Audit logging
+No unnecessary sensitive data
+
+Testing:
+Unit
+Integration
+Component
+End-to-end
+Security testing
+
+CI/CD:
+Automated testing and deployment
+
+Do not select technologies merely because they are fashionable.
+
+Distinguish between:
+"best technology in general"
+and
+"best technology for DocMe360 and this application."
+
+MVP
+
+Do NOT attempt to build the entire organizational intelligence platform initially.
+
+Design an MVP that proves the concept.
+
+A strong MVP may include:
+
+1. Microsoft Entra SSO
+2. Automatic Microsoft profile population
+3. Employee profile
+4. Skills
+5. Industries
+6. Organizations/companies
+7. Professional interests
+8. Optional personal interests
+9. Connections
+10. Canonical/autocomplete taxonomy
+11. Employee directory/search
+12. Shared-connections experience
+13. Basic interactive network visualization
+14. Profile editing
+15. Data freshness metadata
+16. Basic administrator capability
+17. Appropriate audit logging
+18. Accessibility
+
+Potentially defer:
+
+AI
+Complex staffing recommendations
+Advanced analytics
+Graph database
+Project integrations
+Deep Microsoft Graph integrations
+Communities
+Formal mentorship matching
+Natural-language search
+
+unless discovery demonstrates they are necessary to prove value.
+
+SUCCESS METRICS
+
+Do not measure success simply by whether the application launches.
+
+Consider metrics such as:
+
+Onboarding completion rate
+Average time to complete profile
+Profile completeness
+Employee satisfaction
+Percentage of employees maintaining current profiles
+Search usage
+Successful expertise discovery
+Connections made
+Mentorship connections
+Community participation
+Reduction in time required to find internal expertise
+Reduction in duplicate/unstructured skill entries
+Usefulness for staffing/proposal teams
+
+PRODUCT PRINCIPLE
+
+The central idea is:
+
+Turn a one-time onboarding exercise into a living map of DocMe360's collective knowledge, experience, interests, and relationships.
+
+The application should make it easy to answer questions such as:
+
+"Who knows this?"
+"Who has done this?"
+"Who should I talk to?"
+"Who has worked with this organization?"
+"Who shares my interests?"
+"Who can teach me this?"
+"Who wants to learn what I know?"
+"Where do we have deep expertise?"
+"Where do we have capability gaps?"
+"How are our people connected?"
+
+IMPORTANT DESIGN CONSTRAINT
+
+Do not simply digitize the existing Whiteboard.
+
+The goal is not:
+
+Sticky notes -> digital form.
+
+The goal is:
+
+Unstructured onboarding information
+        ->
+Structured organizational knowledge
+        ->
+Relationships
+        ->
+Discovery
+        ->
+Connections
+        ->
+Organizational intelligence
+
+HOW I WANT YOU TO HELP ME
+
+Act as a product strategist, UX architect, senior full-stack engineer, security architect, and technical sounding board.
+
+Do not immediately jump into implementation.
+
+Help me progressively develop:
+
+1. Product vision
+2. Problem statement
+3. User personas
+4. User journeys
+5. Functional requirements
+6. Non-functional requirements
+7. Privacy/security requirements
+8. MVP scope
+9. Future roadmap
+10. UX concepts
+11. Information architecture
+12. Data model
+13. Microsoft Entra integration
+14. Microsoft Graph integration
+15. Authorization model
+16. Application architecture
+17. API design
+18. Testing strategy
+19. Deployment architecture
+20. Metrics and analytics
+21. Risks and tradeoffs
+22. Implementation backlog
+
+Clearly distinguish:
+
+- Known requirements
+- Assumptions
+- Recommendations
+- Open questions
+
+Challenge ideas when appropriate rather than automatically agreeing with them.
+
+Prefer the simplest architecture capable of supporting the requirements.
+
+Pay particular attention to privacy, security, accessibility, maintainability, and user experience.
+
+Most importantly, preserve the central vision:
+
+This should not feel like an employee database.
+
+It should feel like exploring the collective knowledge and connections of DocMe360.

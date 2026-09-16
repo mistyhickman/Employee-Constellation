@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-docme360}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}"
+      POSTGRES_DB: "${POSTGRES_DB:-docme360}"
+    volumes:
+      - docme360-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    environment:
+      DATABASE_URL: "postgresql://${POSTGRES_USER:-docme360}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-docme360}"
+      JWT_SECRET: "${JWT_SECRET:?Set JWT_SECRET in .env - generate one with 'openssl rand -base64 32'}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-false}"
+      PORT: 4000
+      CORS_ORIGIN: "${PUBLIC_ORIGIN:-http://localhost}"
+      RUN_SEED_ON_START: "${RUN_SEED_ON_START:-false}"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      - ./.htpasswd:/etc/nginx/.htpasswd:ro
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  docme360-postgres-data:

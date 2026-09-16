@@ -1,0 +1,352 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Core entities ----------
+
+model Person {
+  id            String   @id @default(uuid())
+  entraObjectId String   @unique
+  name          String
+  preferredName String?
+  pronouns      String?
+  photoUrl      String?
+  jobTitle      String?
+  department    String?
+  managerId     String?
+  manager       Person?  @relation("PersonManager", fields: [managerId], references: [id])
+  reports       Person[] @relation("PersonManager")
+  workEmail     String   @unique
+  location      String?
+  timezone      String?
+  bio           String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  // Notification delivery isn't wired up in this prototype — these
+  // preferences persist and can be edited from Settings, but nothing sends
+  // an actual notification yet. Kept honest about that in the UI copy.
+  notifyMentorshipMatches Boolean @default(true)
+  notifyCommunityActivity Boolean @default(true)
+  notifyProfileReminders  Boolean @default(true)
+
+  roles         PersonRole[]
+  skills        PersonSkill[]
+  industries    PersonIndustry[]
+  organizations PersonOrganization[]
+  interests     PersonInterest[]
+  visibility    VisibilitySetting[]
+
+  connectionsOut PersonConnection[] @relation("ConnectionOwner")
+  connectionsIn  PersonConnection[] @relation("ConnectionTarget")
+
+  auditEventsMade   AuditEvent[]      @relation("AuditActor")
+  projects          PersonProject[]
+  communities       PersonCommunity[]
+  feedbackSubmitted Feedback[]
+}
+
+enum FeedbackType {
+  bug
+  feature
+  question
+}
+
+model Feedback {
+  id        String       @id @default(uuid())
+  personId  String
+  type      FeedbackType
+  message   String
+  createdAt DateTime     @default(now())
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+}
+
+model Skill {
+  id            String         @id @default(uuid())
+  canonicalName String         @unique
+  aliases       String[]       @default([])
+  category      String?
+  approved      Boolean        @default(true)
+  active        Boolean        @default(true)
+  people        PersonSkill[]
+  projects      ProjectSkill[]
+}
+
+model Industry {
+  id            String           @id @default(uuid())
+  canonicalName String           @unique
+  aliases       String[]         @default([])
+  approved      Boolean          @default(true)
+  active        Boolean          @default(true)
+  people        PersonIndustry[]
+  projects      Project[]
+}
+
+model Organization {
+  id             String               @id @default(uuid())
+  canonicalName  String               @unique
+  type           String?
+  aliases        String[]             @default([])
+  approved       Boolean              @default(true)
+  active         Boolean              @default(true)
+  people         PersonOrganization[]
+  clientProjects Project[]
+}
+
+model Project {
+  id                   String   @id @default(uuid())
+  canonicalName        String   @unique
+  description          String?
+  clientOrganizationId String?
+  industryId           String?
+  active               Boolean  @default(true)
+  createdAt            DateTime @default(now())
+
+  clientOrganization Organization?   @relation(fields: [clientOrganizationId], references: [id])
+  industry           Industry?       @relation(fields: [industryId], references: [id])
+  people             PersonProject[]
+  skills             ProjectSkill[]
+}
+
+model PersonProject {
+  id        String  @id @default(uuid())
+  personId  String
+  projectId String
+  role      String?
+
+  person  Person  @relation(fields: [personId], references: [id], onDelete: Cascade)
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, projectId])
+}
+
+model ProjectSkill {
+  id        String @id @default(uuid())
+  projectId String
+  skillId   String
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  skill   Skill   @relation(fields: [skillId], references: [id])
+
+  @@unique([projectId, skillId])
+}
+
+enum CommunityRole {
+  member
+  leader
+}
+
+model Community {
+  id            String   @id @default(uuid())
+  canonicalName String   @unique
+  description   String?
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  members PersonCommunity[]
+}
+
+model PersonCommunity {
+  id          String        @id @default(uuid())
+  personId    String
+  communityId String
+  role        CommunityRole @default(member)
+  joinedAt    DateTime      @default(now())
+
+  person    Person    @relation(fields: [personId], references: [id], onDelete: Cascade)
+  community Community @relation(fields: [communityId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, communityId])
+}
+
+enum InterestKind {
+  professional
+  personal
+}
+
+model Interest {
+  id            String           @id @default(uuid())
+  canonicalName String
+  kind          InterestKind
+  aliases       String[]         @default([])
+  approved      Boolean          @default(true)
+  active        Boolean          @default(true)
+  people        PersonInterest[]
+
+  @@unique([canonicalName, kind])
+}
+
+model Role {
+  id     String       @id @default(uuid())
+  name   String       @unique // "Employee" | "Admin"
+  people PersonRole[]
+}
+
+// ---------- Relationship (join) entities ----------
+
+enum DataSource {
+  employee
+  directory
+  admin
+  ai_suggested
+}
+
+model PersonSkill {
+  id              String     @id @default(uuid())
+  personId        String
+  skillId         String
+  proficiency     String?
+  yearsExperience Float?
+  lastUsed        DateTime?
+  willingToMentor Boolean    @default(false)
+  wantsToLearn    Boolean    @default(false)
+  notes           String?
+  source          DataSource @default(employee)
+  createdAt       DateTime   @default(now())
+  lastConfirmedAt DateTime   @default(now())
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  skill  Skill  @relation(fields: [skillId], references: [id])
+
+  @@unique([personId, skillId])
+}
+
+model PersonIndustry {
+  id                String     @id @default(uuid())
+  personId          String
+  industryId        String
+  depthOfExperience String?
+  source            DataSource @default(employee)
+  createdAt         DateTime   @default(now())
+  lastConfirmedAt   DateTime   @default(now())
+
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  industry Industry @relation(fields: [industryId], references: [id])
+
+  @@unique([personId, industryId])
+}
+
+model PersonOrganization {
+  id               String     @id @default(uuid())
+  personId         String
+  organizationId   String
+  relationshipType String?
+  startDate        DateTime?
+  endDate          DateTime?
+  role             String?
+  description      String?
+  source           DataSource @default(employee)
+  createdAt        DateTime   @default(now())
+
+  person       Person       @relation(fields: [personId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id])
+}
+
+enum InterestDirection {
+  current
+  want_to_explore
+}
+
+model PersonInterest {
+  id         String            @id @default(uuid())
+  personId   String
+  interestId String
+  direction  InterestDirection @default(current)
+  source     DataSource        @default(employee)
+  createdAt  DateTime          @default(now())
+
+  person   Person   @relation(fields: [personId], references: [id], onDelete: Cascade)
+  interest Interest @relation(fields: [interestId], references: [id])
+
+  @@unique([personId, interestId, direction])
+}
+
+enum ConnectionType {
+  worked_together
+  mentor
+  mentee
+  sme_known
+  professional_contact
+  community
+  client_industry
+}
+
+enum Visibility {
+  private
+  team
+  company
+  leadership
+}
+
+model PersonConnection {
+  id                String         @id @default(uuid())
+  personId          String
+  connectedPersonId String
+  relationshipType  ConnectionType
+  visibility        Visibility     @default(team)
+  createdAt         DateTime       @default(now())
+
+  person          Person @relation("ConnectionOwner", fields: [personId], references: [id], onDelete: Cascade)
+  connectedPerson Person @relation("ConnectionTarget", fields: [connectedPersonId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, connectedPersonId, relationshipType])
+}
+
+model PersonRole {
+  id       String @id @default(uuid())
+  personId String
+  roleId   String
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+  role   Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([personId, roleId])
+}
+
+// ---------- Cross-cutting ----------
+
+enum ProfileSection {
+  basic
+  skills
+  organizations
+  professional_interests
+  personal_interests
+  connections
+}
+
+model VisibilitySetting {
+  id       String         @id @default(uuid())
+  personId String
+  section  ProfileSection
+  level    Visibility     @default(team)
+
+  person Person @relation(fields: [personId], references: [id], onDelete: Cascade)
+
+  @@unique([personId, section])
+}
+
+enum AuditAction {
+  edit
+  view
+}
+
+model AuditEvent {
+  id          String      @id @default(uuid())
+  entityType  String
+  entityId    String
+  field       String?
+  oldValue    String?
+  newValue    String?
+  changedById String
+  changedAt   DateTime    @default(now())
+  source      DataSource  @default(employee)
+  action      AuditAction @default(edit)
+
+  changedBy Person @relation("AuditActor", fields: [changedById], references: [id])
+}
