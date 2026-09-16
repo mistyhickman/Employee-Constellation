@@ -16,6 +16,7 @@ searchRouter.get("/", requireAuth, async (req, res) => {
     industryIds: parseIds(req.query.industryIds),
     organizationIds: parseIds(req.query.organizationIds),
     interestIds: parseIds(req.query.interestIds),
+    projectIds: parseIds(req.query.projectIds),
   });
 
   res.json(results);

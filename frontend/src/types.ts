@@ -91,6 +91,7 @@ export interface SearchResultPerson {
   department: string | null;
   skills: { skill: { id: string; canonicalName: string } }[];
   industries: { industry: { id: string; canonicalName: string } }[];
+  projects: { project: { id: string; canonicalName: string } }[];
 }
 
 export interface MeResponse {
