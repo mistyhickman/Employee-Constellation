@@ -123,6 +123,29 @@ meRouter.post("/interests", requireAuth, async (req, res) => {
   res.status(201).json(personInterest);
 });
 
+const updateInterestSchema = z.object({
+  direction: z.enum(["current", "want_to_explore"]),
+});
+
+meRouter.put("/interests/:interestId", requireAuth, async (req, res) => {
+  const parsed = updateInterestSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid interest payload" });
+    return;
+  }
+
+  const { count } = await prisma.personInterest.updateMany({
+    where: { personId: req.session!.personId, interestId: req.params.interestId },
+    data: { direction: parsed.data.direction },
+  });
+  if (count === 0) {
+    res.status(404).json({ error: "Interest entry not found" });
+    return;
+  }
+
+  res.status(204).send();
+});
+
 meRouter.delete("/interests/:interestId", requireAuth, async (req, res) => {
   await prisma.personInterest.deleteMany({
     where: { personId: req.session!.personId, interestId: req.params.interestId },
@@ -152,6 +175,35 @@ meRouter.post("/organizations", requireAuth, async (req, res) => {
   });
 
   res.status(201).json(personOrganization);
+});
+
+const updateOrganizationSchema = z.object({
+  relationshipType: z.string().optional(),
+  role: z.string().optional(),
+  description: z.string().optional(),
+});
+
+meRouter.put("/organizations/:personOrganizationId", requireAuth, async (req, res) => {
+  const parsed = updateOrganizationSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "Invalid organization payload" });
+    return;
+  }
+
+  const { count } = await prisma.personOrganization.updateMany({
+    where: { id: req.params.personOrganizationId, personId: req.session!.personId },
+    data: parsed.data,
+  });
+  if (count === 0) {
+    res.status(404).json({ error: "Organization entry not found" });
+    return;
+  }
+
+  const updated = await prisma.personOrganization.findUnique({
+    where: { id: req.params.personOrganizationId },
+    include: { organization: true },
+  });
+  res.json(updated);
 });
 
 meRouter.delete("/organizations/:personOrganizationId", requireAuth, async (req, res) => {

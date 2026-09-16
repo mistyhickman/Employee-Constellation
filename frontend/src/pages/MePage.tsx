@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { CONNECTION_TYPE_LABELS } from "../lib/connectionLabels";
 import { initials } from "../lib/avatar";
 import { EditProfileModal } from "../components/EditProfileModal";
+import { SkillsSection, IndustriesSection, OrganizationsSection, InterestsSection, ProjectsSection } from "../components/ProfileEntrySections";
 import { formatBirthday } from "../lib/birthday";
 import type { MeResponse } from "../types";
 
@@ -66,67 +67,23 @@ export function MePage() {
       </header>
 
       <Section title="Skills">
-        {p.skills.length === 0 && <Empty label="No skills added yet." />}
-        <ul className="flex flex-wrap gap-2">
-          {p.skills.map((s) => (
-            <li
-              key={s.id}
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700"
-            >
-              {s.skill.canonicalName}
-              {s.proficiency ? ` · ${s.proficiency}` : ""}
-              {s.willingToMentor ? " · mentor" : ""}
-              {s.wantsToLearn ? " · learning" : ""}
-            </li>
-          ))}
-        </ul>
+        <SkillsSection me={p} />
       </Section>
 
       <Section title="Industries">
-        {p.industries.length === 0 && <Empty label="No industries added yet." />}
-        <ul className="flex flex-wrap gap-2">
-          {p.industries.map((i) => (
-            <li key={i.id} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700">
-              {i.industry.canonicalName}
-            </li>
-          ))}
-        </ul>
+        <IndustriesSection me={p} />
       </Section>
 
       <Section title="Organizations">
-        {p.organizations.length === 0 && <Empty label="No organizations added yet." />}
-        <ul className="flex flex-col gap-1">
-          {p.organizations.map((o) => (
-            <li key={o.id} className="text-sm text-slate-700">
-              {o.organization.canonicalName}
-              {o.role ? ` — ${o.role}` : ""}
-            </li>
-          ))}
-        </ul>
+        <OrganizationsSection me={p} />
       </Section>
 
       <Section title="Projects">
-        {p.projects.length === 0 && <Empty label="No projects added yet." />}
-        <ul className="flex flex-col gap-1">
-          {p.projects.map((proj) => (
-            <li key={proj.id} className="text-sm text-slate-700">
-              {proj.project.canonicalName}
-              {proj.role ? ` — ${proj.role}` : ""}
-            </li>
-          ))}
-        </ul>
+        <ProjectsSection me={p} />
       </Section>
 
       <Section title="Interests">
-        {p.interests.length === 0 && <Empty label="No interests added yet." />}
-        <ul className="flex flex-wrap gap-2">
-          {p.interests.map((i) => (
-            <li key={i.id} className="rounded-full border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700">
-              {i.interest.canonicalName}
-              {i.direction === "want_to_explore" ? " (want to learn)" : ""}
-            </li>
-          ))}
-        </ul>
+        <InterestsSection me={p} />
       </Section>
 
       <Section title="Connections">
