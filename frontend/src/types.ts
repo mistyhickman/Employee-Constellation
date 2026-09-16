@@ -105,6 +105,10 @@ export interface MeResponse {
   location: string | null;
   workEmail: string;
   bio: string | null;
+  birthdayMonth: number | null;
+  birthdayDay: number | null;
+  homeCity: string | null;
+  homeState: string | null;
   roles: string[];
   skills: PersonSkillView[];
   industries: PersonIndustryView[];
@@ -125,6 +129,10 @@ export interface PersonDetailResponse {
   location: string | null;
   workEmail: string | null;
   bio: string | null;
+  birthdayMonth: number | null;
+  birthdayDay: number | null;
+  homeCity: string | null;
+  homeState: string | null;
   skills: PersonSkillView[];
   industries: PersonIndustryView[];
   organizations: PersonOrganizationView[];

@@ -7,6 +7,7 @@ import { ConstellationView } from "../components/ConstellationView";
 import { EditProfileModal } from "../components/EditProfileModal";
 import { CONNECTION_TYPE_LABELS } from "../lib/connectionLabels";
 import { initials } from "../lib/avatar";
+import { formatBirthday } from "../lib/birthday";
 import { buildConstellation, buildProjectConstellation, buildTaxonomyConstellation, type ConstellationNode, type ConstellationNodeType } from "../lib/constellation";
 import type {
   MeResponse,
@@ -229,6 +230,12 @@ function MyProfilePanel({ person }: { person: PersonDetailResponse }) {
             </p>
             <p className="text-sm text-slate-500">{person.jobTitle}</p>
             {person.location && <p className="text-xs text-slate-400">{person.location}</p>}
+            {(person.homeCity || person.homeState) && (
+              <p className="text-xs text-slate-400">{[person.homeCity, person.homeState].filter(Boolean).join(", ")}</p>
+            )}
+            {formatBirthday(person.birthdayMonth, person.birthdayDay) && (
+              <p className="text-xs text-slate-400">Birthday: {formatBirthday(person.birthdayMonth, person.birthdayDay)}</p>
+            )}
           </div>
         </div>
         <button

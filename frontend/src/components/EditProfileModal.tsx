@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 import { api } from "../lib/api";
 import { fileToSquareDataUrl } from "../lib/imageUpload";
 import { initials } from "../lib/avatar";
+import { MONTHS } from "../lib/birthday";
 
 /** Structural shape — satisfied by both MeResponse and PersonDetailResponse
  * when viewing your own profile, so callers don't need to fetch a specific
@@ -16,6 +17,10 @@ export interface EditableProfile {
   jobTitle: string | null;
   location: string | null;
   bio: string | null;
+  birthdayMonth: number | null;
+  birthdayDay: number | null;
+  homeCity: string | null;
+  homeState: string | null;
 }
 
 interface EditProfileModalProps {
@@ -33,6 +38,10 @@ export function EditProfileModal({ me, onClose }: EditProfileModalProps) {
   const [jobTitle, setJobTitle] = useState(me.jobTitle ?? "");
   const [location, setLocation] = useState(me.location ?? "");
   const [bio, setBio] = useState(me.bio ?? "");
+  const [birthdayMonth, setBirthdayMonth] = useState(me.birthdayMonth ? String(me.birthdayMonth) : "");
+  const [birthdayDay, setBirthdayDay] = useState(me.birthdayDay ? String(me.birthdayDay) : "");
+  const [homeCity, setHomeCity] = useState(me.homeCity ?? "");
+  const [homeState, setHomeState] = useState(me.homeState ?? "");
   const [photoPreview, setPhotoPreview] = useState<string | null>(me.photoUrl);
   const [photoChanged, setPhotoChanged] = useState(false);
   const [photoError, setPhotoError] = useState<string | null>(null);
@@ -53,6 +62,10 @@ export function EditProfileModal({ me, onClose }: EditProfileModalProps) {
         jobTitle: jobTitle.trim() || undefined,
         location: location.trim() || undefined,
         bio: bio.trim() || undefined,
+        birthdayMonth: birthdayMonth ? Number(birthdayMonth) : undefined,
+        birthdayDay: birthdayDay ? Number(birthdayDay) : undefined,
+        homeCity: homeCity.trim() || undefined,
+        homeState: homeState.trim() || undefined,
       });
       if (photoChanged) {
         if (photoPreview) {
@@ -145,6 +158,45 @@ export function EditProfileModal({ me, onClose }: EditProfileModalProps) {
           <Field label="Pronouns" value={pronouns} onChange={setPronouns} placeholder="e.g. she/her" />
           <Field label="Job title" value={jobTitle} onChange={setJobTitle} />
           <Field label="Location" value={location} onChange={setLocation} placeholder="e.g. Remote (EST)" />
+          <div>
+            <span className="mb-1 block text-sm font-medium text-slate-700">Birthday</span>
+            <div className="flex gap-2">
+              <select
+                aria-label="Birthday month"
+                value={birthdayMonth}
+                onChange={(e) => setBirthdayMonth(e.target.value)}
+                className="w-1/2 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="">Month</option>
+                {MONTHS.map((month, i) => (
+                  <option key={month} value={i + 1}>
+                    {month}
+                  </option>
+                ))}
+              </select>
+              <select
+                aria-label="Birthday day"
+                value={birthdayDay}
+                onChange={(e) => setBirthdayDay(e.target.value)}
+                className="w-1/2 rounded-lg border border-slate-300 px-3 py-2 text-sm"
+              >
+                <option value="">Day</option>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((day) => (
+                  <option key={day} value={day}>
+                    {day}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <div className="w-2/3">
+              <Field label="Home city" value={homeCity} onChange={setHomeCity} placeholder="e.g. Austin" />
+            </div>
+            <div className="w-1/3">
+              <Field label="Home state" value={homeState} onChange={setHomeState} placeholder="e.g. TX" />
+            </div>
+          </div>
           <div>
             <label htmlFor="bio-field" className="mb-1 block text-sm font-medium text-slate-700">
               Bio

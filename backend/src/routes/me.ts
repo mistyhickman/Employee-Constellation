@@ -248,6 +248,10 @@ const updateProfileSchema = z.object({
   jobTitle: z.string().max(150).optional(),
   location: z.string().max(150).optional(),
   bio: z.string().max(1000).optional(),
+  birthdayMonth: z.number().int().min(1).max(12).optional(),
+  birthdayDay: z.number().int().min(1).max(31).optional(),
+  homeCity: z.string().max(100).optional(),
+  homeState: z.string().max(100).optional(),
 });
 
 meRouter.put("/profile", requireAuth, async (req, res) => {
