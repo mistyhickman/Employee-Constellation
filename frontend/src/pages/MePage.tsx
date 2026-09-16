@@ -4,6 +4,7 @@ import { api } from "../lib/api";
 import { CONNECTION_TYPE_LABELS } from "../lib/connectionLabels";
 import { initials } from "../lib/avatar";
 import { EditProfileModal } from "../components/EditProfileModal";
+import { formatBirthday } from "../lib/birthday";
 import type { MeResponse } from "../types";
 
 export function MePage() {
@@ -37,6 +38,14 @@ export function MePage() {
               {p.department ? ` · ${p.department}` : ""}
             </p>
             {p.location && <p className="text-sm text-slate-400">{p.location}</p>}
+            {(p.homeCity || p.homeState) && (
+              <p className="text-sm text-slate-400">
+                {[p.homeCity, p.homeState].filter(Boolean).join(", ")}
+              </p>
+            )}
+            {formatBirthday(p.birthdayMonth, p.birthdayDay) && (
+              <p className="text-sm text-slate-400">Birthday: {formatBirthday(p.birthdayMonth, p.birthdayDay)}</p>
+            )}
             {p.bio && <p className="mt-1 max-w-lg text-sm text-slate-600">{p.bio}</p>}
             <div className="mt-2 flex gap-2">
               {p.roles.map((role) => (

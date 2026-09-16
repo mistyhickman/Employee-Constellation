@@ -25,6 +25,10 @@ model Person {
   location      String?
   timezone      String?
   bio           String?
+  birthdayMonth Int?
+  birthdayDay   Int?
+  homeCity      String?
+  homeState     String?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
